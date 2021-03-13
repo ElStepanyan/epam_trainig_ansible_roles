@@ -1,0 +1,5 @@
+- hosts: 'webserver'
+  roles:
+    - role: mysql
+    - role: nginx
+    - role: wordpress

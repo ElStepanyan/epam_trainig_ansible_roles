@@ -1,0 +1,29 @@
+---
+# tasks file for nginx
+- name: 'Install nginx'
+  apt:
+    name: 'nginx'
+    state: 'present'
+    update_cache: true
+  become: true
+- name: 'Start nginx'
+  become: true
+  service:
+    name: nginx
+    state: started
+
+- name: 'copy nginx config file'
+  template: "src=../templates/wordpress.conf dest=/etc/nginx/sites-available/wordpress owner=www-data group=www-data mode=0644"
+  become: true
+- name: 'enable configuration'
+  file: src=/etc/nginx/sites-available/wordpress dest=/etc/nginx/sites-enabled/wordpress owner=www-data group=www-data state=link
+  notify:
+    - restart nginx
+  become: true
+- name: Delete default file
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: true
+
+

@@ -1,0 +1,78 @@
+---
+# tasks file for mysql
+- name: 'Update apt repo and cache'
+  apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+  become: true
+
+
+- name: 'Install mysql'
+  become: true
+  apt:
+    name: "{{ item }}"
+  loop:
+    - 'mariadb-server'
+    - 'mariadb-client'
+    - 'php-fpm'
+    - 'php-mysql'
+- name: 'Start the Mariadb service'
+  action: service name=mysqld state=started
+  become: true
+
+- name: 'Reload privilege tables'
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - FLUSH PRIVILEGES
+  changed_when: False
+  become: true
+- name: 'Remove anonymous users'
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - DELETE FROM mysql.user WHERE User=''
+  changed_when: False
+  become: true
+
+- name: 'Disallow root login remotely'
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
+  changed_when: False
+  become: true
+
+- name: 'Remove test database and access to it'
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - DROP DATABASE IF EXISTS test
+    - DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'
+  changed_when: False
+  become: true
+- name: 'Reload privilege tables'
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - FLUSH PRIVILEGES
+  changed_when: False
+  become: true
+
+- name: 'Create a new database'
+  mysql_db:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    name: "{{ wp_db_name }}"
+    state: present
+  become: true
+- name: Create user with password, all database privileges and 'WITH GRANT OPTION' in wordpress_db
+  #  community.mysql.mysql_user:
+  mysql_user:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+    name: "{{ wp_db_user }}"
+    password: "{{ wp_db_password }}"
+    priv:
+      'wordpress_db.*': 'ALL,GRANT'
+  become: true
+
+- name: Reload privilege tables
+  command: 'mysql -ne "{{ item }}"'
+  loop:
+    - FLUSH PRIVILEGES
+  changed_when: False
+  become: true
+
