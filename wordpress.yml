@@ -1,4 +1,4 @@
-- hosts: 'webserver'
+- hosts: 'aws_ec2'
   roles:
     - role: mysql
     - role: nginx

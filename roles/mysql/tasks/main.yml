@@ -14,6 +14,7 @@
     - 'mariadb-client'
     - 'php-fpm'
     - 'php-mysql'
+    - 'python3-pip'
 - name: 'Start the Mariadb service'
   action: service name=mysqld state=started
   become: true
