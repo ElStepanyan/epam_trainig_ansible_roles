@@ -4,7 +4,6 @@
   apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
   become: true
 
-
 - name: 'Install mysql'
   become: true
   apt:
@@ -15,6 +14,13 @@
     - 'php-fpm'
     - 'php-mysql'
     - 'python3-pip'
+
+- name: Install pip3 PyMySQL
+  become: true
+  pip:
+    name: PyMySQL
+    executable: pip3
+
 - name: 'Start the Mariadb service'
   action: service name=mysqld state=started
   become: true
@@ -66,8 +72,7 @@
     state: present
     name: "{{ wp_db_user }}"
     password: "{{ wp_db_password }}"
-    priv:
-      'wordpress_db.*': 'ALL,GRANT'
+    priv: 'wordpress_db.*:ALL'
   become: true
 
 - name: Reload privilege tables
